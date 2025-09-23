@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <!-- Navbar with Avatar -->
+  <nav class="bg-blue-600 text-white p-4 flex justify-between items-center">
+    <h1 class="text-xl font-bold">Team Dashboard</h1>
+    <div class="flex items-center gap-4">
+      <a href="#" class="hover:underline">Edit Profile</a>
+      <a href="login.html" class="hover:underline">Logout</a>
+      <img src="assets/avatar.png" alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-white" />
+    </div>
+  </nav>
+
+  <main class="p-6 space-y-8">
+    <!-- Tiles -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="tiles"></div>
+
+    <!-- Task List -->
+    <div id="taskListView" class="bg-white p-6 rounded shadow">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">Task List</h2>
+        <div class="flex gap-2">
+          <input type="text" placeholder="Search tasks..." class="border px-3 py-2 rounded" />
+          <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Task</button>
+        </div>
+      </div>
+      <table class="w-full table-auto text-sm">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 text-left">Title</th>
+            <th class="px-4 py-2 text-left">Status</th>
+            <th class="px-4 py-2 text-left">Due Date</th>
+            <th class="px-4 py-2 text-left">Assignee</th>
+            <th class="px-4 py-2 text-left">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Kanban View -->
+    <div id="kanbanView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+
+    <!-- Date Filter -->
+    <!-- Filter Controls -->
+<!-- Filter Controls (Right-Aligned) -->
+<div class="bg-white p-4 rounded shadow">
+  <div class="flex flex-wrap justify-end gap-4 items-end">
+    <div class="flex flex-col">
+      <label class="text-sm font-medium">Start Date:</label>
+      <input type="date" id="startDate" class="border px-3 py-2 rounded w-48" />
+    </div>
+
+    <div class="flex flex-col">
+      <label class="text-sm font-medium">End Date:</label>
+      <input type="date" id="endDate" class="border px-3 py-2 rounded w-48" />
+    </div>
+
+    <div class="flex flex-col">
+      <label class="text-sm font-medium">Chart Mode:</label>
+      <select id="chartMode" class="border px-3 py-2 rounded w-48">
+        <option value="count">Tasks Count</option>
+        <option value="effort">Effort Points</option>
+      </select>
+    </div>
+
+    <button onclick="filterCharts()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">Apply</button>
+  </div>
+</div>
+	
+	<!-- Chart Mode Toggle -->
+<div class="flex items-center gap-4">
+  
+</div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div class="bg-white p-4 rounded shadow">
+          <h2 class="text-sm font-bold mb-2 text-center">Task Completion</h2>
+          <canvas id="completionChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <h2 class="text-sm font-bold mb-2 text-center">Team Productivity</h2>
+          <canvas id="productivityChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <h2 class="text-sm font-bold mb-2 text-center">Task Distribution</h2>
+          <canvas id="distributionChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+          <h2 class="text-sm font-bold mb-2 text-center">Weekly Activity</h2>
+          <canvas id="activityChart" class="w-full h-48"></canvas>
+        </div>
+      </div>
+  </main>
+
+  <!-- Modal -->
+  <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Task</h2>
+      <form id="taskForm" onsubmit="saveTask(event)">
+        <input type="hidden" id="taskId" />
+        <input type="text" id="taskTitle" placeholder="Title" required class="w-full border px-3 py-2 rounded mb-2" />
+        <textarea id="taskDescription" placeholder="Description" required class="w-full border px-3 py-2 rounded mb-2"></textarea>
+        <input type="date" id="taskDueDate" required class="w-full border px-3 py-2 rounded mb-2" />
+        <select id="taskStatus" required class="w-full border px-3 py-2 rounded mb-4">
+          <option value="Pending">Pending</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Completed">Completed</option>
+        </select>
+		  <select id="taskAssignee" required class="w-full border px-3 py-2 rounded">
+			<option value="">Assignee</option>
+			<option value="Ada">Ada</option>
+			<option value="Chuka">Chuka</option>
+			<option value="Fatima">Fatima</option>
+			<option value="Tunde">Tunde</option>
+		  </select>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
+
+<div class="mb-4">
+  
+</div>
