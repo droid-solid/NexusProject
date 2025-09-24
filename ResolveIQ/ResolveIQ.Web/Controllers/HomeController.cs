@@ -1,38 +1,107 @@
 using System.Diagnostics;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ResolveIQ.Web.Data;
+using ResolveIQ.Web.Data.Tasks;
 using ResolveIQ.Web.Models;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Abstractions;
 
 namespace ResolveIQ.Web.Controllers
 {
-    [Authorize]
     public class HomeController : Controller
     {
-        private readonly IDownstreamApi _downstreamApi;
         private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger, IDownstreamApi downstreamApi)
+        private readonly ApplicationDbContext _context; 
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
-            _downstreamApi = downstreamApi;;
+            _context = context;
         }
 
-        [AuthorizeForScopes(ScopeKeySection = "DownstreamApi:Scopes")]
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-using var response = await _downstreamApi.CallApiForUserAsync("DownstreamApi").ConfigureAwait(false);
-if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            string userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAManager = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value == AppConstants.AppConstants.MANAGER_ROLE;
+
+            var tasks = new List<TaskModel>();
+
+            if (isAManager)
             {
-                var apiResult = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                ViewData["ApiResult"] = apiResult;
+                tasks = await _context.Tasks.Include(x => x.Assignee)
+                                            .Include(x => x.Reporter)
+                                            .Where(x => x.ReporterId == userId).Select(x => new TaskModel
+                                            {
+                                                Id = x.Id,
+                                                Title = x.Title,
+                                                Status = x.Status,
+                                                Assignee = x.Assignee.FullName,
+                                                Reporter = x.Reporter.FullName,
+                                                DueDate = x.DueDate,
+                                                DateCreated = x.DateCreated
+                                            }).ToListAsync();
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                throw new HttpRequestException($"Invalid status code in the HttpResponseMessage: {response.StatusCode}: {error}");
-            };
+                tasks = await _context.Tasks.Include(x => x.Assignee)
+                                            .Include(x => x.Reporter)
+                                            .Where(x => x.ReporterId == userId).Select(x => new TaskModel
+                                            {
+                                                Id = x.Id,
+                                                Title = x.Title,
+                                                Status = x.Status,
+                                                Assignee = x.Assignee.FullName,
+                                                Reporter = x.Reporter.FullName,
+                                                DueDate = x.DueDate,
+                                                DateCreated = x.DateCreated
+                                            }).ToListAsync();
+            }
+            return View(tasks);
+        }
+
+        public async Task<IActionResult> GetTaskList()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            string userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAManager = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value == AppConstants.AppConstants.MANAGER_ROLE;
+            var tasks = new List<TaskModel>();
+            if (isAManager)
+            {
+                tasks = await _context.Tasks.Include(x => x.Assignee)
+                                            .Include(x => x.Reporter)
+                                            .Where(x => x.ReporterId == userId).Select(x => new TaskModel
+                                            {
+                                                Id = x.Id,
+                                                Title = x.Title,
+                                                Status = x.Status,
+                                                Assignee = x.Assignee.FullName,
+                                                Reporter = x.Reporter.FullName,
+                                                DueDate = x.DueDate,
+                                                DateCreated = x.DateCreated
+                                            }).ToListAsync();
+            }
+            else
+            {
+                tasks = await _context.Tasks.Include(x => x.Assignee)
+                                            .Include(x => x.Reporter)
+                                            .Where(x => x.ReporterId == userId).Select(x => new TaskModel
+                                            {
+                                                Id = x.Id,
+                                                Title = x.Title,
+                                                Status = x.Status,
+                                                Assignee = x.Assignee.FullName,
+                                                Reporter = x.Reporter.FullName,
+                                                DueDate = x.DueDate,
+                                                DateCreated = x.DateCreated
+                                            }).ToListAsync();
+            }
+            return PartialView(tasks);
+        }
+
+        public async Task<IActionResult> CreateTask()
+        {
             return View();
         }
 
@@ -41,7 +110,6 @@ if (response.StatusCode == System.Net.HttpStatusCode.OK)
             return View();
         }
 
-        [AllowAnonymous]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

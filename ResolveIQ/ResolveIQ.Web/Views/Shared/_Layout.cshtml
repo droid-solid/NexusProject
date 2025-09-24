@@ -1,50 +1,71 @@
-﻿<!DOCTYPE html>
+﻿@using ResolveIQ.Web.Data.Tasks;
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ResolveIQ.Web</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ResolveIQ.Web.styles.css" asp-append-version="true" />
+    <title> @ViewData["Title"] - ResolveIQ.Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ResolveIQ.Web</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                    <partial name="_LoginPartial" />
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navbar with Avatar -->
+    <nav class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">Resolve IQ</h1>
+        <div class="flex items-center gap-4">
+            <a href="#" class="hover:underline">Edit Profile</a>
+            <a href="login.html" class="hover:underline">Logout</a>
+            <img src="assets/avatar.png" alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-white" />
+        </div>
+    </nav>
+
+    <main class="p-6 space-y-8">           
+            @RenderBody()        
+    </main>
+
+    <!-- Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
+            <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Task</h2>
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <input type="hidden" id="taskId" />
+                <input type="text" id="taskTitle" placeholder="Title" required class="w-full border px-3 py-2 rounded mb-2" />
+                <textarea id="taskDescription" placeholder="Description" required class="w-full border px-3 py-2 rounded mb-2"></textarea>
+                <input type="date" id="taskDueDate" required class="w-full border px-3 py-2 rounded mb-2" />
+                @Html.DropDownList(
+                    "taskStatus",
+                    new SelectList(Enum.GetValues(typeof(UserTaskStatus))),
+                    htmlAttributes: new { @class = "w-full border px-3 py-2 rounded mb-4", required = "required", id = "taskStatus" }
+                )
+                <select id="taskAssignee" required class="w-full border px-3 py-2 rounded">
+                    <option value="">Assignee</option>
+                    <option value="Ada">Ada</option>
+                    <option value="Chuka">Chuka</option>
+                    <option value="Fatima">Fatima</option>
+                    <option value="Tunde">Tunde</option>
+                </select>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
                 </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            </form>
+        </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - ResolveIQ.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    <script src="../js/main.js"></script>
+    <!-- jQuery (required for DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('table').DataTable();
+        });
+    </script>
 </body>
 </html>
+
+<div class="mb-4">
+</div>

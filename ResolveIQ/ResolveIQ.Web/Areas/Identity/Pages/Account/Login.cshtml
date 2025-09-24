@@ -1,0 +1,34 @@
+﻿@page
+@model LoginModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded shadow-md w-full max-w-sm">        
+        <h2 class="text-2xl font-bold mb-6 text-center">ResolveIQ Login</h2>
+        <form id="account" method="post">
+
+           
+            <input type="email" placeholder="Email" name="Email" required class="mb-4 w-full px-4 py-2 border rounded" />
+            <span asp-validation-for="Input.Email" class="text-red-600 text-sm block mb-4"></span>
+            
+            <input type="password" placeholder="Password" name="Password" required class="mb-6 w-full px-4 py-2 border rounded" />
+            <span asp-validation-for="Input.Password" class="text-red-600 text-sm block mb-4"></span>
+            <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+            @if (!ModelState.IsValid)
+            {
+                <span class="text-red-600 text-sm block mb-4">@Html.ValidationSummary()</span>            
+            }
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+        </form>
+    </div>
+</body>
+</html>

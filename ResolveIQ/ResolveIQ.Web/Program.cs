@@ -1,9 +1,10 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using ResolveIQ.Web.Data;
+using ResolveIQ.Web.Data.Auth;
+using ResolveIQ.Web.Data.Seeder;
+using System.Reflection;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace ResolveIQ.Web
 {
@@ -13,26 +14,37 @@ namespace ResolveIQ.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            var initialScopes = builder.Configuration["DownstreamApi:Scopes"]?.Split(' ') ?? builder.Configuration["MicrosoftGraph:Scopes"]?.Split(' ');
-
             // Add services to the container.
-            builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                 options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString), mySqlOptins => mySqlOptins.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName)));
+            builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddControllersWithViews(options =>
-            {
-                var policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-                options.Filters.Add(new AuthorizeFilter(policy));
-            });
-            builder.Services.AddRazorPages()
-                .AddMicrosoftIdentityUI();
+            builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
+                .AddRoleManager<RoleManager<IdentityRole>>()
+                .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            builder.Services.AddControllersWithViews();            
 
             var app = builder.Build();
+            var serviceProvider = app.Services.CreateScope().ServiceProvider;
 
+            using (var context = serviceProvider.GetRequiredService<ApplicationDbContext>()) 
+            { 
+                context.Database.Migrate();
+                // Seed roles and users
+                context.SeedRolesAndUsersAsync(
+                    serviceProvider.GetRequiredService<UserManager<AppUser>>(),
+                    serviceProvider.GetRequiredService<RoleManager<IdentityRole>>()
+                ).GetAwaiter().GetResult();
+            }
             // Configure the HTTP request pipeline.
-            if (!app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseMigrationsEndPoint();
+            }
+            else
             {
                 app.UseExceptionHandler("/Home/Error");
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.

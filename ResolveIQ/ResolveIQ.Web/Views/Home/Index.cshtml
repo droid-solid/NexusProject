@@ -1,11 +1,112 @@
+﻿@using ResolveIQ.Web.Data.Tasks
+@model IList<TaskModel>
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
+    var totalTasks = Model.Count();
+    var completed = Model.Count(x => x.Status == UserTaskStatus.Completed);
+    var pending = Model.Count(x => x.Status == UserTaskStatus.Pending);
+    var inProgress = Model.Count(x => x.Status == UserTaskStatus.InProgress);
+    var pastDue = Model.Count(x => x.Status == UserTaskStatus.Pending && x.DueDate >= DateTime.Today);
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="flex flex-wrap gap-6" id="tiles">
+    <div class="bg-white p-4 rounded shadow text-center flex-1 min-w-[180px]">
+        <h3 class="text-sm text-gray-500">Total Tasks</h3>
+        <p class="text-3xl font-bold text-blue-600">@totalTasks</p>
+    </div>
+    <div class="bg-white p-5 rounded shadow text-center flex-1 min-w-[180px]">
+        <h3 class="text-sm text-gray-500">Completed</h3>
+        <p class="text-3xl font-bold text-green-600">@completed</p>
+    </div>
+    <div class="bg-white p-5 rounded shadow text-center flex-1 min-w-[180px]">
+        <h3 class="text-sm text-gray-500">In Progress</h3>
+        <p class="text-3xl font-bold text-yellow-500">@inProgress</p>
+    </div>
+    <div class="bg-white p-5 rounded shadow text-center flex-1 min-w-[180px]">
+        <h3 class="text-sm text-gray-500">Pending</h3>
+        <p class="text-3xl font-bold text-red-500">@pending</p>
+    </div>
+    <div class="bg-white p-5 rounded shadow text-center flex-1 min-w-[180px]">
+        <h3 class="text-sm text-gray-500">Past Due</h3>
+        <p class="text-3xl font-bold text-red-500">@pastDue</p>
+    </div>
 </div>
 
-<div>API result</div>
-<div>@ViewData["ApiResult"]</div>
+<!-- Task List -->
+<div id="taskListView" class="bg-white p-6 rounded shadow">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">Task List</h2>
+        <div class="flex gap-2">
+            <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Task</button>
+        </div>
+    </div>
+    <table class="w-full table-auto text-sm">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="px-4 py-2 text-left">Title</th>
+                <th class="px-4 py-2 text-left">Status</th>
+                <th class="px-4 py-2 text-left">Due Date</th>
+                <th class="px-4 py-2 text-left">Assignee</th>
+                <th class="px-4 py-2 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="taskTableBody">
+            @if (Model.Count > 0)
+            {
+                @foreach (var task in Model)
+                {
+                    <tr class="border-b hover:bg-gray-100">
+                        <td class="px-4 py-2">@task.Title</td>
+                        <td class="px-4 py-2">@task.Status</td>
+                        <td class="px-4 py-2">@task.DueDate.ToShortDateString()</td>
+                        <td class="px-4 py-2">@task.Assignee</td>
+                        <td class="px-4 py-2">Edit | Delete</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5">No task meet your search filter...</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Kanban View -->
+<div id="kanbanView" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+
+<!-- Date Filter -->
+<!-- Filter Controls -->
+<!-- Filter Controls (Right-Aligned) -->
+<div class="bg-white p-4 rounded shadow">
+    <div class="flex flex-wrap justify-end gap-4 items-end">
+        <div class="flex flex-col">
+            <label class="text-sm font-medium">Start Date:</label>
+            <input type="date" id="startDate" class="border px-3 py-2 rounded w-48" />
+        </div>
+
+        <div class="flex flex-col">
+            <label class="text-sm font-medium">End Date:</label>
+            <input type="date" id="endDate" class="border px-3 py-2 rounded w-48" />
+        </div>
+
+        <div class="flex flex-col">
+            <label class="text-sm font-medium">Chart Mode:</label>
+            <select id="chartMode" class="border px-3 py-2 rounded w-48">
+                <option value="count">Tasks Count</option>
+                <option value="effort">Effort Points</option>
+            </select>
+        </div>
+
+        <button onclick="filterCharts()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mt-4">Apply</button>
+    </div>
+</div>
+
+<!-- Chart Mode Toggle -->
+<div class="flex items-center gap-4">
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+
+</div>

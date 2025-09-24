@@ -1,6 +1,6 @@
-## Cavista Task Management System
+## CT SYNCSPACE Management System by ResolveIQ
 
-Cavista Task Management System is a .NET web application designed to help managers and their colleagues efficiently manage tasks. The system enables users to create, assign, and track tasks, promoting better collaboration and productivity within teams. Users watching specific tasks receive push notifications for updates, ensuring everyone stays informed in real time.
+CT SYNCSPACE Management System by ResolveIQ is a .NET web application designed to help managers and their colleagues efficiently manage tasks. The system enables users to create, assign, and track tasks, promoting better collaboration and productivity within teams. Users watching specific tasks receive push notifications for updates, ensuring everyone stays informed in real time.
 
 ### Features
 
@@ -14,7 +14,7 @@ Cavista Task Management System is a .NET web application designed to help manage
 
 1. Clone the repository.
 3. Configure the application's user directory integration:
-    - The Cavista Task Management System utilizes a centralized User Directory (such as Active Directory, LDAP, or a custom user store) to manage user roles, authentication, and access control.
+    - The application utilizes a centralized User Directory (such as Active Directory, LDAP, or a custom user store) to manage user roles, authentication, and access control.
     - Ensure your User Directory is set up and accessible from the application environment.
     - Update the application's configuration files (e.g., `appsettings.json`) with the necessary connection details for your User Directory.
     - The system automatically synchronizes user accounts and roles from the directory, allowing managers to assign tasks and permissions based on directory roles (e.g., Manager, Team Member).
