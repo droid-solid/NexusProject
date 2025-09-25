@@ -1,0 +1,54 @@
+﻿@using ResolveIQ.Web.Data.Tasks
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ResolveIQ.Web.Models.TaskModel
+
+<h2 class="text-2xl font-bold mb-6 text-gray-800">Task Details</h2>
+<div class="bg-white shadow rounded-lg p-6 max-w-xl mx-auto">
+    <dl>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Title</dt>
+            <dd class="w-2/3 text-gray-900">@Model.Title</dd>
+        </div>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Description</dt>
+            <dd class="w-2/3 text-gray-900">@Model.Description</dd>
+        </div>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Assignee</dt>
+            <dd class="w-2/3 text-gray-900">@Model.Assignee</dd>
+        </div>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Reporter</dt>
+            <dd class="w-2/3 text-gray-900">@Model.Reporter</dd>
+        </div>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Effort Points</dt>
+            <dd class="w-2/3 text-gray-900">@Model.EffortPoints</dd>
+        </div>
+        <div class="flex py-2 border-b border-gray-200">
+            <dt class="w-1/3 font-semibold text-gray-600">Due Date</dt>
+            <dd class="w-2/3 text-gray-900">
+                @Model.DueDate.ToString("yyyy-MM-dd")
+                @if (Model.DueDate >= DateTime.Today && Model.Status != UserTaskStatus.Completed)
+                {
+                    <span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded ml-2">Past Due</span>
+                }
+                else
+                {
+                    <span class="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-2 py-1 rounded ml-2">@Model.Status</span>
+                }
+            </dd>
+        </div>
+        <div class="flex py-2">
+            <dt class="w-1/3 font-semibold text-gray-600">Status</dt>
+            <dd class="w-2/3 text-gray-900">@Model.Status</dd>
+        </div>
+    </dl>
+</div>
+<div class="max-w-xl mx-auto mt-6">
+    <a href="Home/Index" class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition">Back to Dashboard</a>
+</div>

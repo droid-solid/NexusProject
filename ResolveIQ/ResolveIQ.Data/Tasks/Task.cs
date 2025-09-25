@@ -1,21 +1,17 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ResolveIQ.Data.Interfaces;
-using ResolveIQ.Web.Data.Auth;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ResolveIQ.Web.Data.Tasks
+namespace ResolveIQ.Data.Tasks
 {
-    public class UserTask : IEntity
+    public class Task : IEntity
     {
         public int Id { get; set; }
-        public string TaskNumber { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public DateTime DueDate { get; set; }
-        public DateTime DateCreated { get; set; }
         public int EffortPoints { get; set; }
-        public UserTaskStatus Status { get; set; }
         
         [ForeignKey("Assignee")]
         public string AssigneeId { get; set; }
@@ -23,22 +19,7 @@ namespace ResolveIQ.Web.Data.Tasks
         [ForeignKey("Reporter")]
         public string ReporterId { get; set; }
                
-        public AppUser Assignee { get; set; }
-        public AppUser Reporter { get; set; }
-        public TaskPriority Priority { get; set; }
-    }
-
-    public enum UserTaskStatus
-    {
-        Pending = 1,
-        InProgress,
-        Completed
-    }
-
-    public enum TaskPriority
-    {
-        Low = 1,
-        Medium,
-        High
+        public IdentityUser Assignee { get; set; }
+        public IdentityUser Reporter { get; set; }
     }
 }

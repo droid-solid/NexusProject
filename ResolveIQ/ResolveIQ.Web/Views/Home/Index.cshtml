@@ -6,7 +6,7 @@
     var completed = Model.Count(x => x.Status == UserTaskStatus.Completed);
     var pending = Model.Count(x => x.Status == UserTaskStatus.Pending);
     var inProgress = Model.Count(x => x.Status == UserTaskStatus.InProgress);
-    var pastDue = Model.Count(x => x.Status == UserTaskStatus.Pending && x.DueDate >= DateTime.Today);
+    var pastDue = Model.Count(x => x.Status != UserTaskStatus.Completed && x.DueDate >= DateTime.Today);
 }
 
 <div class="flex flex-wrap gap-6" id="tiles">
@@ -37,12 +37,13 @@
     <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-bold">Task List</h2>
         <div class="flex gap-2">
-            <button onclick="openModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Task</button>
+            <a href="@Url.Action("CreateTask")"  class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Task</a>
         </div>
     </div>
     <table class="w-full table-auto text-sm">
         <thead class="bg-gray-200">
             <tr>
+                <th class="px-2 py-2 text-left">Task Number</th>
                 <th class="px-4 py-2 text-left">Title</th>
                 <th class="px-4 py-2 text-left">Status</th>
                 <th class="px-4 py-2 text-left">Due Date</th>
@@ -56,19 +57,20 @@
                 @foreach (var task in Model)
                 {
                     <tr class="border-b hover:bg-gray-100">
+                        <td class="px-2 py-2"><a href="@Url.Action("Task", new{taskNumber = task.TaskNumber})">@task.TaskNumber</a></td>
                         <td class="px-4 py-2">@task.Title</td>
                         <td class="px-4 py-2">@task.Status</td>
                         <td class="px-4 py-2">@task.DueDate.ToShortDateString()</td>
                         <td class="px-4 py-2">@task.Assignee</td>
-                        <td class="px-4 py-2">Edit | Delete</td>
+                        <td class="px-4 py-2"> <a href="@Url.Action("EditTask",new{id = task.Id})">Edit</a> | <a href="#">Delete</a></td>
                     </tr>
                 }
             }
             else
             {
-                <tr><td colspan="5">No task meet your search filter...</td></tr>
+                <tr><td colspan="4">No task meet your search filter...</td></tr>
             }
-        </tbody>
+        </tbody> 
     </table>
 </div>
 

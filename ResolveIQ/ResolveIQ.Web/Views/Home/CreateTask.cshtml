@@ -1,0 +1,62 @@
+@using ResolveIQ.Web.Data.Tasks
+@model ResolveIQ.Web.Models.CreateTaskViewModel
+
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Create Task" : $"Edit Task: {Model.TaskNumber}";
+}
+
+<h1 class="text-3xl font-bold mb-6" >@(Model.Id == 0 ? "Create Task" : "Edit Task: @Model.TaskNumber")</h1>
+
+<hr class="mb-6" />
+<div class="flex justify-center">
+    <div class="w-full max-w-md">
+        <form method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+            <div class="mb-4">
+                <label asp-for="Title" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <input asp-for="Title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                <span asp-validation-for="Title" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="DueDate" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <input asp-for="DueDate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                <span asp-validation-for="DueDate" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Assignee" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <select asp-for="Assignee" asp-items="(IEnumerable<SelectListItem>)ViewBag.Assignees" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
+                <span asp-validation-for="Assignee" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Description" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <textarea asp-for="Description" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></textarea>
+                <span asp-validation-for="Description" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="EffortPoints" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <input asp-for="EffortPoints" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                <span asp-validation-for="EffortPoints" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Status" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <select asp-for="Status" asp-items="Html.GetEnumSelectList<UserTaskStatus>()" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
+                <span asp-validation-for="Status" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="mb-6">
+                <label asp-for="Priority" class="block text-gray-700 text-sm font-bold mb-2"></label>
+                <select asp-for="Priority" asp-items="Html.GetEnumSelectList<TaskPriority>()" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"></select>
+                <span asp-validation-for="Priority" class="text-red-500 text-xs"></span>
+            </div>
+            <div class="flex items-center justify-between">
+                <input type="submit" value="Create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" /> 
+                <a href="/home"><i class="fade fa-home"></i> Go to Dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* @section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+} *@
