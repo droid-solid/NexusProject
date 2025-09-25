@@ -36,6 +36,14 @@ namespace ResolveIQ.Web.Models
         [Required]
         public TaskPriority Priority { get; set; }
         public string TaskNumber { get; set; } = string.Empty;
+        public DateTime DateCreated { get; set; }
+    }
+
+
+    public enum ChartMode
+    {
+        TaksCount = 1,
+        EffortPoints       
     }
 
     public class UserSelect

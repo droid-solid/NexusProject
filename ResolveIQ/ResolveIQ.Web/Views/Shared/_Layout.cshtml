@@ -5,8 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title> @ViewData["Title"] - SyncSpace</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link href="css/jquery.growl.css" rel="stylesheet" type="text/css" />
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
 </head>
@@ -25,48 +28,29 @@
             @RenderBody()        
     </main>
 
-    <!-- Modal -->
-    <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-        <div class="bg-white p-6 rounded shadow-lg w-full max-w-md">
-            <h2 class="text-xl font-bold mb-4" id="modalTitle">Add Task</h2>
-            <form id="taskForm" onsubmit="saveTask(event)">
-                <input type="hidden" id="taskId" />
-                <input type="text" id="taskTitle" placeholder="Title" required class="w-full border px-3 py-2 rounded mb-2" />
-                <textarea id="taskDescription" placeholder="Description" required class="w-full border px-3 py-2 rounded mb-2"></textarea>
-                <input type="date" id="taskDueDate" required class="w-full border px-3 py-2 rounded mb-2" />
-                @Html.DropDownList(
-                    "taskStatus",
-                    new SelectList(Enum.GetValues(typeof(UserTaskStatus))),
-                    htmlAttributes: new { @class = "w-full border px-3 py-2 rounded mb-4", required = "required", id = "taskStatus" }
-                )
-                <select id="taskAssignee" required class="w-full border px-3 py-2 rounded">
-                    <option value="">Assignee</option>
-                    <option value="Ada">Ada</option>
-                    <option value="Chuka">Chuka</option>
-                    <option value="Fatima">Fatima</option>
-                    <option value="Tunde">Tunde</option>
-                </select>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script src="../js/main.js"></script>
     <!-- jQuery (required for DataTables) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="js/main.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>   
+    <script src="js/jquery.growl.js"></script>
+    
     <script>
         $(document).ready(function () {
             $('table').DataTable();
+        @if (TempData["Notification"] != null)
+        {
+              <text>
+                $.growl.notice({
+                  message: "@TempData["Notification"]",
+                  title: "@TempData["Notification"]",
+                  target: 'button'
+                });
+              </text>
+        }
+
+            
         });
     </script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
-
-<div class="mb-4">
-</div>

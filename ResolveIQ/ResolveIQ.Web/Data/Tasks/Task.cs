@@ -14,6 +14,7 @@ namespace ResolveIQ.Web.Data.Tasks
         public string Description { get; set; }
         public DateTime DueDate { get; set; }
         public DateTime DateCreated { get; set; }
+        public DateTime? CompletionDate { get; set; }
         public int EffortPoints { get; set; }
         public UserTaskStatus Status { get; set; }
         
@@ -25,6 +26,7 @@ namespace ResolveIQ.Web.Data.Tasks
                
         public AppUser Assignee { get; set; }
         public AppUser Reporter { get; set; }
+        
         public TaskPriority Priority { get; set; }
     }
 

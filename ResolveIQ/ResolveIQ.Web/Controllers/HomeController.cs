@@ -34,7 +34,8 @@ namespace ResolveIQ.Web.Controllers
         {
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             string userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var isAManager = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value == AppConstants.AppConstants.MANAGER_ROLE;
+            var userRole = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value;
+            var isAManager = userRole == AppConstants.AppConstants.MANAGER_ROLE;
 
             var tasks = new List<TaskModel>();
 
@@ -70,6 +71,7 @@ namespace ResolveIQ.Web.Controllers
                                                 TaskNumber = x.TaskNumber
                                             }).ToListAsync();
             }
+            ViewBag.Role = userRole;
             return View(tasks);
         }
 
@@ -98,7 +100,7 @@ namespace ResolveIQ.Web.Controllers
             {
                 tasks = await _context.Tasks.Include(x => x.Assignee)
                                             .Include(x => x.Reporter)
-                                            .Where(x => x.ReporterId == userId).Select(x => new TaskModel
+                                            .Where(x => x.AssigneeId == userId).Select(x => new TaskModel
                                             {
                                                 Id = x.Id,
                                                 Title = x.Title,
@@ -130,14 +132,57 @@ namespace ResolveIQ.Web.Controllers
                 Priority = x.Priority,
                 Status = x.Status,
                 Title = x.Title,
-                TaskNumber = x.TaskNumber
+                TaskNumber = x.TaskNumber,
+                DateCreated = x.DateCreated
             }).FirstOrDefaultAsync(x => x.Id == id);
+
             if(task == null)
             {
                 return new NotFoundResult();
             }
             ViewBag.Assignees = await GetAssigneesDropDownList();
             return View("CreateTask",task);
+        }
+
+        public async Task<IActionResult> GetReportData(DateTime startDate, DateTime endDate, ChartMode chartMode)
+        {
+            endDate = endDate.AddDays(1).AddSeconds(-1);
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            string userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAManager = claimsIdentity.FindFirst(ClaimTypes.Role)?.Value == AppConstants.AppConstants.MANAGER_ROLE;
+            var completionData = new Dictionary<string, int>();
+            var productivityData = new Dictionary<string, int>();
+            var taskDistribution = new Dictionary<string, int>();
+            var weeklyCompletion = new Dictionary<string, int>();
+
+            var baseTaskQuery = _context.Tasks.AsNoTracking();
+            if (isAManager)
+            {
+                baseTaskQuery = baseTaskQuery.Where(x => x.ReporterId == userId);
+            }
+            else
+            {
+                baseTaskQuery = baseTaskQuery.Where(x => x.AssigneeId == userId);
+            }
+
+                completionData = await baseTaskQuery.Where(x => x.DateCreated >= startDate && x.DateCreated <= endDate)
+                .GroupBy(x => x.Status == UserTaskStatus.Completed)
+                .ToDictionaryAsync(x => x.Key ? "Completed" : "Remaining", x => chartMode == ChartMode.EffortPoints ? x.Sum(x => x.EffortPoints) : x.Count());
+
+            productivityData = await baseTaskQuery.Include(x => x.Assignee)
+                                .Where(x => x.DateCreated >= startDate && x.DateCreated <= endDate)                                
+                                .GroupBy(x => x.Assignee.FullName)
+                                .ToDictionaryAsync(x => x.Key, x => chartMode == ChartMode.EffortPoints ? x.Sum(x => x.EffortPoints) : x.Count());
+
+            taskDistribution = await baseTaskQuery.Where(x => x.DateCreated >= startDate && x.DateCreated <= endDate)
+                                .GroupBy(x => x.Status)
+                                .ToDictionaryAsync(x => x.Key.ToString(), x => chartMode == ChartMode.EffortPoints ? x.Sum(x => x.EffortPoints) : x.Count());
+
+            weeklyCompletion = await baseTaskQuery.Where(x => x.Status == UserTaskStatus.Completed && x.CompletionDate != null)
+                                .GroupBy(x => x.CompletionDate.Value.DayOfWeek)
+                                .ToDictionaryAsync(x => x.Key.ToString(), x => chartMode == ChartMode.EffortPoints ? x.Sum(x => x.EffortPoints) : x.Count());
+
+            return Ok(new { productivityData, taskDistribution, completionData, weeklyCompletion });            
         }
 
         public async Task<IActionResult> Task(string taskNumber)
@@ -175,27 +220,40 @@ namespace ResolveIQ.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> EditTask(CreateTaskViewModel taskmodel)
         {
-            ViewBag.Assignees = await GetAssigneesDropDownList();
-            var task = _context.Tasks.FirstOrDefault(x => x.Id == taskmodel.Id);
-            if(task == null)
+            if (ModelState.IsValid)
             {
-                return new NotFoundResult();
+                ViewBag.Assignees = await GetAssigneesDropDownList();
+                var task = _context.Tasks.FirstOrDefault(x => x.Id == taskmodel.Id);
+                if (task == null)
+                {
+                    return new NotFoundResult();
+                }
+                else
+                {
+                    task.AssigneeId = taskmodel.Assignee;
+                    task.Description = taskmodel.Description;
+                    task.DueDate = taskmodel.DueDate;
+                    task.EffortPoints = taskmodel.EffortPoints;
+                    task.Priority = taskmodel.Priority;
+                    task.Status = taskmodel.Status;
+                    task.Title = taskmodel.Title;
+
+                    if (taskmodel.Status != task.Status && taskmodel.Status == UserTaskStatus.Completed)
+                    {
+                        task.CompletionDate = DateTime.Now;
+                    }
+                    _context.Update(task);
+                    await _context.SaveChangesAsync();
+                    TempData["Notification"] =  "New task has been created successfully";
+                    return RedirectToAction("Index");
+                }
             }
             else
             {
-                task.AssigneeId = taskmodel.Assignee;
-                task.Description = taskmodel.Description;
-                task.DueDate = taskmodel.DueDate;
-                task.EffortPoints = taskmodel.EffortPoints;
-                task.Priority = taskmodel.Priority;
-                task.Status = taskmodel.Status;
-                task.Title = taskmodel.Title;
-
-                _context.Update(task);
-                await _context.SaveChangesAsync();
-                ViewBag.Notification = new { success = true, message = "New task has been created successfully" };
-                return RedirectToAction("Index");
-            }           
+                ViewBag.Assignees = await GetAssigneesDropDownList();
+                return View("CreateTask", taskmodel);
+            }
+                       
         }
 
         [HttpPost]        
@@ -244,8 +302,8 @@ namespace ResolveIQ.Web.Controllers
                     if (userDevice != null) {
                         BackgroundJob.Enqueue(() => SendNotifcation(newTask.TaskNumber, userDevice.DeviceToken));
                     }
-                    ViewBag.Notification = new { success = true, message = "New task has been created successfully"};                    
-                    return View(new CreateTaskViewModel());
+                    TempData["Notification"] = "New task has been created successfully";
+                    return RedirectToAction("Index");
                 }                                               
             }
             return View(task);

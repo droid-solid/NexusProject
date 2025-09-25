@@ -1,4 +1,5 @@
 ﻿@using ResolveIQ.Web.Data.Tasks
+@using ResolveIQ.Web.AppConstants
 @model IList<TaskModel>
 @{
     ViewData["Title"] = "Dashboard";
@@ -47,7 +48,9 @@
                 <th class="px-4 py-2 text-left">Title</th>
                 <th class="px-4 py-2 text-left">Status</th>
                 <th class="px-4 py-2 text-left">Due Date</th>
+                <th class="px-4 py-2 text-left">Date Created</th>
                 <th class="px-4 py-2 text-left">Assignee</th>
+                <th class="px-4 py-2 text-left">Reporter</th>
                 <th class="px-4 py-2 text-left">Actions</th>
             </tr>
         </thead>
@@ -61,7 +64,9 @@
                         <td class="px-4 py-2">@task.Title</td>
                         <td class="px-4 py-2">@task.Status</td>
                         <td class="px-4 py-2">@task.DueDate.ToShortDateString()</td>
+                        <td class="px-4 py-2">@task.DateCreated.ToShortDateString()</td>
                         <td class="px-4 py-2">@task.Assignee</td>
+                        <td class="px-4 py-2">@task.Reporter</td>
                         <td class="px-4 py-2"> <a href="@Url.Action("EditTask",new{id = task.Id})">Edit</a> | <a href="#">Delete</a></td>
                     </tr>
                 }
@@ -84,19 +89,19 @@
     <div class="flex flex-wrap justify-end gap-4 items-end">
         <div class="flex flex-col">
             <label class="text-sm font-medium">Start Date:</label>
-            <input type="date" id="startDate" class="border px-3 py-2 rounded w-48" />
+            <input type="date" id="startDate" value="@DateTime.Now.AddDays(-7).ToString("yyyy-MM-dd")" class="border px-3 py-2 rounded w-48" />
         </div>
 
         <div class="flex flex-col">
             <label class="text-sm font-medium">End Date:</label>
-            <input type="date" id="endDate" class="border px-3 py-2 rounded w-48" />
+            <input type="date" id="endDate" value="@DateTime.Now.ToString("yyyy-MM-dd")" class="border px-3 py-2 rounded w-48" />
         </div>
 
         <div class="flex flex-col">
             <label class="text-sm font-medium">Chart Mode:</label>
             <select id="chartMode" class="border px-3 py-2 rounded w-48">
-                <option value="count">Tasks Count</option>
-                <option value="effort">Effort Points</option>
+                <option value="1">Tasks Count</option>
+                <option value="2">Effort Points</option>
             </select>
         </div>
 
@@ -111,11 +116,16 @@
             <h2 class="text-sm font-bold mb-2 text-center">Task Completion</h2>
             <canvas id="completionChart" class="w-full h-48"></canvas>
         </div>
-        <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-sm font-bold mb-2 text-center">Team Productivity</h2>
-            <canvas id="productivityChart" class="w-full h-48"></canvas>
-        </div>
-        <div class="bg-white p-4 rounded shadow">
+        @{
+            if (ViewBag.Role == AppConstants.MANAGER_ROLE)            
+                {
+                    <div class="bg-white p-4 rounded shadow">
+                        <h2 class="text-sm font-bold mb-2 text-center">Team Productivity</h2>
+                        <canvas id="productivityChart" class="w-full h-48"></canvas>
+                    </div>
+                }
+         }       
+            <div class="bg-white p-4 rounded shadow">
             <h2 class="text-sm font-bold mb-2 text-center">Task Distribution</h2>
             <canvas id="distributionChart" class="w-full h-48"></canvas>
         </div>
@@ -130,3 +140,7 @@
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
 
 </div>
+
+@section Scripts{
+    <script src="js/main.js"></script>
+}
