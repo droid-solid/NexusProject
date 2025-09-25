@@ -6,7 +6,7 @@
     var completed = Model.Count(x => x.Status == UserTaskStatus.Completed);
     var pending = Model.Count(x => x.Status == UserTaskStatus.Pending);
     var inProgress = Model.Count(x => x.Status == UserTaskStatus.InProgress);
-    var pastDue = Model.Count(x => x.Status != UserTaskStatus.Completed && x.DueDate >= DateTime.Today);
+    var pastDue = Model.Count(x => x.Status != UserTaskStatus.Completed && x.DueDate <= DateTime.Today);
 }
 
 <div class="flex flex-wrap gap-6" id="tiles">
@@ -106,6 +106,24 @@
 
 <!-- Chart Mode Toggle -->
 <div class="flex items-center gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-sm font-bold mb-2 text-center">Task Completion</h2>
+            <canvas id="completionChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-sm font-bold mb-2 text-center">Team Productivity</h2>
+            <canvas id="productivityChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-sm font-bold mb-2 text-center">Task Distribution</h2>
+            <canvas id="distributionChart" class="w-full h-48"></canvas>
+        </div>
+        <div class="bg-white p-4 rounded shadow">
+            <h2 class="text-sm font-bold mb-2 text-center">Weekly Activity</h2>
+            <canvas id="activityChart" class="w-full h-48"></canvas>
+        </div>
+    </div>
 </div>
 
 <!-- Charts Row -->

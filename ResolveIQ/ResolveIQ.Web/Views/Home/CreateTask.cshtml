@@ -5,7 +5,7 @@
     ViewData["Title"] = Model.Id == 0 ? "Create Task" : $"Edit Task: {Model.TaskNumber}";
 }
 
-<h1 class="text-3xl font-bold mb-6" >@(Model.Id == 0 ? "Create Task" : "Edit Task: @Model.TaskNumber")</h1>
+<h1 class="text-3xl font-bold mb-6" >@(Model.Id == 0 ? "Create Task" : $"Edit Task: {Model.TaskNumber}")</h1>
 
 <hr class="mb-6" />
 <div class="flex justify-center">
@@ -19,7 +19,7 @@
             </div>
             <div class="mb-4">
                 <label asp-for="DueDate" class="block text-gray-700 text-sm font-bold mb-2"></label>
-                <input asp-for="DueDate" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                <input asp-for="DueDate" type="date" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
                 <span asp-validation-for="DueDate" class="text-red-500 text-xs"></span>
             </div>
             <div class="mb-4">
@@ -49,7 +49,7 @@
             </div>
             <div class="flex items-center justify-between">
                 <input type="submit" value="Create" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" /> 
-                <a href="/home"><i class="fade fa-home"></i> Go to Dashboard</a>
+                <a href="@Url.Action("Index")"><i class="fade fa-home"></i> Go to Dashboard</a>
             </div>
         </form>
     </div>

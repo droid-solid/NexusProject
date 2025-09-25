@@ -1,9 +1,15 @@
+using FirebaseAdmin;
+using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using ResolveIQ.Web.Data;
+using ResolveIQ.Web.Data.Auth;
+using ResolveIQ.Web.Data.Notification;
 using ResolveIQ.Web.Data.Tasks;
 using ResolveIQ.Web.Models;
 using System.Diagnostics;
@@ -15,11 +21,13 @@ namespace ResolveIQ.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ApplicationDbContext _context; 
-        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
+        private readonly ApplicationDbContext _context;
+        private readonly SignInManager<AppUser> _signInManager;
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context, SignInManager<AppUser> signInManager)
         {
             _logger = logger;
             _context = context;
+            _signInManager = signInManager;
         }
         
         public async Task<IActionResult> Index()
@@ -158,6 +166,12 @@ namespace ResolveIQ.Web.Controllers
             return View(task);
         }
 
+       /* [HttpPost]
+        public async Task<IActionResult> ReceiveToken(string token, string UserId)
+        {
+            var user = _context.
+        }*/
+
         [HttpPost]
         public async Task<IActionResult> EditTask(CreateTaskViewModel taskmodel)
         {
@@ -182,6 +196,19 @@ namespace ResolveIQ.Web.Controllers
                 ViewBag.Notification = new { success = true, message = "New task has been created successfully" };
                 return RedirectToAction("Index");
             }           
+        }
+
+        [HttpPost]        
+        public async Task<IActionResult> SaveUserDeviceToken([FromBody]CreateUserDeviceToken deviceToken)
+        {
+            _context.Devices.Add(new UserDevice {
+                DeviceToken = deviceToken.UserId,
+                DeviceType = deviceToken.DeviceType,
+                UserId = deviceToken.UserId
+            });
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
 
@@ -212,7 +239,12 @@ namespace ResolveIQ.Web.Controllers
                     newTask.TaskNumber = $"RES-{newTask.Id}";
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
-                    ViewBag.Notification = new { success = true, message = "New task has been created successfully" };
+
+                    var userDevice = _context.Devices.FirstOrDefault(x => x.UserId == newTask.AssigneeId);
+                    if (userDevice != null) {
+                        BackgroundJob.Enqueue(() => SendNotifcation(newTask.TaskNumber, userDevice.DeviceToken));
+                    }
+                    ViewBag.Notification = new { success = true, message = "New task has been created successfully"};                    
                     return View(new CreateTaskViewModel());
                 }                                               
             }
@@ -244,6 +276,33 @@ namespace ResolveIQ.Web.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index");
+        }
+
+        public async Task SendNotifcation(string taskNumber, string deviceToken)
+        {
+            FirebaseApp.Create(new AppOptions()
+            {
+                Credential = GoogleCredential.FromFile("firebaseAdmin.json"),
+            });
+
+            var message = new Message()
+            {
+                Token = deviceToken, // Replace with actual token
+                Notification = new Notification
+                {
+                    Title = $"{taskNumber} has been assigned to you",
+                    Body = $"Task {taskNumber} bas been assigned to you. Open your app to view it,",
+                }
+            };
+
+            // Send the message
+            var response = await FirebaseMessaging.DefaultInstance.SendAsync(message);
         }
     }
 }

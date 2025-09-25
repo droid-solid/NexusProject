@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.MySql;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ResolveIQ.Web.Data;
@@ -25,6 +27,14 @@ namespace ResolveIQ.Web
                 .AddRoleManager<RoleManager<IdentityRole>>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            builder.Services.AddHangfire(cfg => cfg.UseStorage(new MySqlStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new MySqlStorageOptions { })));
+            builder.Services.AddHangfireServer(options =>
+            {
+                options.WorkerCount = 10;
+            });
+
+            builder.Services.AddHangfireServer();
+
             builder.Services.AddControllersWithViews();            
 
             var app = builder.Build();
@@ -39,6 +49,7 @@ namespace ResolveIQ.Web
                     serviceProvider.GetRequiredService<RoleManager<IdentityRole>>()
                 ).GetAwaiter().GetResult();
             }
+            app.UseHangfireDashboard();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

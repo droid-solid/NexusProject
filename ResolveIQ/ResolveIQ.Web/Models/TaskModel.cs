@@ -24,7 +24,7 @@ namespace ResolveIQ.Web.Models
         [Required]
         public string Title { get; set; }
         [Required]
-        public DateTime DueDate { get; set; }
+        public DateTime DueDate { get; set; } = DateTime.Now;
         [Required]
         public string Assignee { get; set; }
         [Required]
